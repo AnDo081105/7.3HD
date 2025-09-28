@@ -239,7 +239,19 @@ pipeline {
                         echo 'Running OWASP Dependency Check...'
                         script {
                             try {
-                                bat 'mvn org.owasp:dependency-check-maven:check'
+                                bat """
+                                    setlocal enabledelayedexpansion
+                                    rem Set JAVA_HOME for Maven
+                                    if exist "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.12.7-hotspot" (
+                                        set "JAVA_HOME=C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.12.7-hotspot"
+                                    ) else if exist "C:\\Program Files\\Java\\jdk-17.0.12" (
+                                        set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17.0.12"
+                                    ) else if exist "C:\\Program Files\\Java\\jdk-17" (
+                                        set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17"
+                                    )
+                                    echo "Using JAVA_HOME: !JAVA_HOME!"
+                                    mvn org.owasp:dependency-check-maven:check
+                                """
                             } catch (Exception e) {
                                 echo "⚠️ Security vulnerabilities found in dependencies for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME}"
                                 // Uncomment when Slack is configured:
@@ -269,6 +281,24 @@ pipeline {
                         echo 'Running Trivy security scan...'
                         script {
                             try {
+                                // First, build the JAR file if it doesn't exist
+                                bat """
+                                    setlocal enabledelayedexpansion
+                                    rem Set JAVA_HOME for Maven
+                                    if exist "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.12.7-hotspot" (
+                                        set "JAVA_HOME=C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.12.7-hotspot"
+                                    ) else if exist "C:\\Program Files\\Java\\jdk-17.0.12" (
+                                        set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17.0.12"
+                                    ) else if exist "C:\\Program Files\\Java\\jdk-17" (
+                                        set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17"
+                                    )
+                                    echo "Using JAVA_HOME: !JAVA_HOME!"
+                                    if not exist "target\\jenkins-pipeline-demo-*.jar" (
+                                        echo "JAR file not found, building it first..."
+                                        mvn clean package -DskipTests=true
+                                    )
+                                """
+                                
                                 // Build temporary image for scanning
                                 bat "docker build -t ${DOCKER_IMAGE}:temp ."
                                 
