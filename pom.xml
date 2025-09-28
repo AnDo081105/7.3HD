@@ -1,310 +1,123 @@
-<?xml version="1.0" encoding="UTF-8"?><?xml version="1.0" encoding="UTF-8"?>
-
-<project xmlns="http://maven.apache.org/POM/4.0.0"<project xmlns="http://maven.apache.org/POM/4.0.0"
-
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
-
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">         http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
-    <modelVersion>4.0.0</modelVersion>    <modelVersion>4.0.0</modelVersion>
-
-
-
-    <groupId>com.example</groupId>    <groupId>com.example</groupId>
-
-    <artifactId>jenkins-pipeline-demo</artifactId>    <artifactId>jenkins-pipeline-demo</artifactId>
-
-    <version>1.0.0</version>    <version>1.0.0</version>
-
-    <packaging>jar</packaging>    <packaging>jar</packaging>
-
-
-
-    <name>Jenkins Pipeline Demo</name>    <name>Jenkins Pipeline Demo</name>
-
-    <description>Demo project for Jenkins CI/CD Pipeline</description>    <description>Demo project for Jenkins CI/CD Pipeline</description>
-
-
-
-    <properties>    <properties>
-
-        <maven.compiler.source>11</maven.compiler.source>        <maven.compiler.source>11</maven.compiler.source>
-
-        <maven.compiler.target>11</maven.compiler.target>        <maven.compiler.target>11</maven.compiler.target>
-
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <spring-boot.version>3.1.0</spring-boot.version>        <spring-boot.version>3.1.0</spring-boot.version>
-
-        <junit.version>5.9.3</junit.version>        <junit.version>5.9.3</junit.version>
-
-    </properties>    </properties>
-
-
-
-    <dependencies>    <dependencies>
-
-        <!-- Spring Boot Starter -->        <!-- Spring Boot Starter -->
-
-        <dependency>        <dependency>
-
-            <groupId>org.springframework.boot</groupId>            <groupId>org.springframework.boot</groupId>
-
-            <artifactId>spring-boot-starter-web</artifactId>            <artifactId>spring-boot-starter-web</artifactId>
-
-            <version>3.1.0</version>            <version>3.1.0</version>
-
-        </dependency>        </dependency>
-
-        <dependency>        <dependency>
-
-            <groupId>org.springframework.boot</groupId>            <groupId>org.springframework.boot</groupId>
-
-            <artifactId>spring-boot-starter</artifactId>            <artifactId>spring-boot-starter</artifactId>
-
-            <version>3.1.0</version>            <version>3.1.0</version>
-
-        </dependency>        </dependency>TF-8"?>
-
-        <project xmlns="http://maven.apache.org/POM/4.0.0"
-
-        <!-- Test dependencies -->         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-
-        <dependency>         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
-
-            <groupId>org.junit.jupiter</groupId>         http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
-            <artifactId>junit-jupiter-api</artifactId>    <modelVersion>4.0.0</modelVersion>
-
-            <version>${junit.version}</version>    
-
-            <scope>test</scope>    <groupId>com.example</groupId>
-
-        </dependency>    <artifactId>jenkins-pipeline-demo</artifactId>
-
-        <dependency>    <version>1.0.0</version>
-
-            <groupId>org.junit.jupiter</groupId>    <packaging>jar</packaging>
-
-            <artifactId>junit-jupiter-engine</artifactId>    
-
-            <version>${junit.version}</version>    <name>Jenkins Pipeline Demo</name>
-
-            <scope>test</scope>    <description>A simple Java application to demonstrate Jenkins CI/CD pipeline</description>
-
-        </dependency>    
-
-        <dependency>    <properties>
-
-            <groupId>org.mockito</groupId>        <maven.compiler.source>11</maven.compiler.source>
-
-            <artifactId>mockito-core</artifactId>        <maven.compiler.target>11</maven.compiler.target>
-
-            <version>5.3.1</version>        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-            <scope>test</scope>        <junit.version>5.9.2</junit.version>
-
-        </dependency>        <sonar.organization>default</sonar.organization>
-
-        <dependency>        <sonar.host.url>http://localhost:9000</sonar.host.url>
-
-            <groupId>org.springframework.boot</groupId>    </properties>
-
-            <artifactId>spring-boot-starter-test</artifactId>    
-
-            <version>3.1.0</version>    <dependencies>
-
-            <scope>test</scope>        <!-- Main dependencies -->
-
-        </dependency>        <dependency>
-
-    </dependencies>            <groupId>org.springframework.boot</groupId>
-
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>jenkins-pipeline-demo</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>Jenkins Pipeline Demo</name>
+    <description>A simple Java application to demonstrate Jenkins CI/CD pipeline</description>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <junit.version>5.9.2</junit.version>
+        <sonar.organization>default</sonar.organization>
+        <sonar.host.url>http://localhost:9000</sonar.host.url>
+    </properties>
+
+    <dependencies>
+        <!-- Main dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-
-    <build>            <version>3.1.0</version>
-
-        <plugins>        </dependency>
-
-            <!-- Spring Boot Plugin -->        
-
-            <plugin>        <!-- Test dependencies -->
-
-                <groupId>org.springframework.boot</groupId>        <dependency>
-
-                <artifactId>spring-boot-maven-plugin</artifactId>            <groupId>org.junit.jupiter</groupId>
-
-                <version>3.1.0</version>            <artifactId>junit-jupiter-api</artifactId>
-
-                <configuration>            <version>${junit.version}</version>
-
-                    <mainClass>com.example.demo.JenkinsPipelineDemoApplication</mainClass>            <scope>test</scope>
-
-                </configuration>        </dependency>
-
-                <executions>        <dependency>
-
-                    <execution>            <groupId>org.junit.jupiter</groupId>
-
-                        <goals>            <artifactId>junit-jupiter-engine</artifactId>
-
-                            <goal>repackage</goal>            <version>${junit.version}</version>
-
-                        </goals>            <scope>test</scope>
-
-                    </execution>        </dependency>
-
-                </executions>        <dependency>
-
-            </plugin>            <groupId>org.mockito</groupId>
-
-                        <artifactId>mockito-core</artifactId>
-
-            <!-- Maven Compiler Plugin -->            <version>5.3.1</version>
-
-            <plugin>            <scope>test</scope>
-
-                <groupId>org.apache.maven.plugins</groupId>        </dependency>
-
-                <artifactId>maven-compiler-plugin</artifactId>        <dependency>
-
-                <version>3.11.0</version>            <groupId>org.springframework.boot</groupId>
-
-                <configuration>            <artifactId>spring-boot-starter-test</artifactId>
-
-                    <source>11</source>            <version>3.1.0</version>
-
-                    <target>11</target>            <scope>test</scope>
-
-                </configuration>        </dependency>
-
-            </plugin>    </dependencies>
-
-                
-
-            <!-- Maven Surefire Plugin for Unit Tests -->    <build>
-
-            <plugin>        <plugins>
-
-                <groupId>org.apache.maven.plugins</groupId>            <!-- Maven Compiler Plugin -->
-
-                <artifactId>maven-surefire-plugin</artifactId>            <plugin>
-
-                <version>3.0.0</version>                <groupId>org.apache.maven.plugins</groupId>
-
-                <configuration>                <artifactId>maven-compiler-plugin</artifactId>
-
-                    <includes>                <version>3.11.0</version>
-
-                        <include>**/*Test.java</include>                <configuration>
-
-                        <include>**/*Tests.java</include>                    <source>11</source>
-
-                    </includes>                    <target>11</target>
-
-                    <argLine>-Dlogback.configurationFile=src/test/resources/logback-test.xml</argLine>                </configuration>
-
-                </configuration>            </plugin>
-
-            </plugin>            
-
-                        <!-- Maven Surefire Plugin for Unit Tests -->
-
-            <!-- Maven Failsafe Plugin for Integration Tests -->            <plugin>
-
-            <plugin>                <groupId>org.apache.maven.plugins</groupId>
-
-                <groupId>org.apache.maven.plugins</groupId>                <artifactId>maven-surefire-plugin</artifactId>
-
-                <artifactId>maven-failsafe-plugin</artifactId>                <version>3.0.0</version>
-
-                <version>3.0.0</version>                <configuration>
-
-                <configuration>                    <includes>
-
-                    <includes>                        <include>**/*Test.java</include>
-
-                        <include>**/*IT.java</include>                        <include>**/*Tests.java</include>
-
-                        <include>**/*IntegrationTest.java</include>                    </includes>
-
-                    </includes>                    <systemPropertyVariables>
-
-                </configuration>                        <logback.configurationFile>${project.basedir}/src/test/resources/logback-test.xml</logback.configurationFile>
-
-            </plugin>                        <slf4j.provider>ch.qos.logback.classic.spi.LogbackServiceProvider</slf4j.provider>
-
-                                </systemPropertyVariables>
-
-            <!-- JaCoCo Plugin for Code Coverage -->                    <argLine>
-
-            <plugin>                        -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
-
-                <groupId>org.jacoco</groupId>                        -Dlogback.configurationFile=src/test/resources/logback-test.xml
-
-                <artifactId>jacoco-maven-plugin</artifactId>                        @{argLine}
-
-                <version>0.8.10</version>                    </argLine>
-
-                <executions>                </configuration>
-
-                    <execution>            </plugin>
-
-                        <goals>            
-
-                            <goal>prepare-agent</goal>            <!-- Maven Failsafe Plugin for Integration Tests -->
-
-                        </goals>            <plugin>
-
-                    </execution>                <groupId>org.apache.maven.plugins</groupId>
-
-                    <execution>                <artifactId>maven-failsafe-plugin</artifactId>
-
-                        <id>report</id>                <version>3.0.0</version>
-
-                        <phase>test</phase>                <configuration>
-
-                        <goals>                    <includes>
-
-                            <goal>report</goal>                        <include>**/*IT.java</include>
-
-                        </goals>                        <include>**/*IntegrationTest.java</include>
-
-                    </execution>                    </includes>
-
-                </executions>                </configuration>
-
-            </plugin>            </plugin>
-
-                        
-
-            <!-- OWASP Dependency Check Plugin -->            <!-- JaCoCo Plugin for Code Coverage -->
-
-            <plugin>            <plugin>
-
-                <groupId>org.owasp</groupId>                <groupId>org.jacoco</groupId>
-
-                <artifactId>dependency-check-maven</artifactId>                <artifactId>jacoco-maven-plugin</artifactId>
-
-                <version>8.4.0</version>                <version>0.8.10</version>
-
-                <configuration>                <executions>
-
-                    <format>ALL</format>                    <execution>
-
-                    <outputDirectory>${project.build.directory}/dependency-check</outputDirectory>                        <goals>
-
-                </configuration>                            <goal>prepare-agent</goal>
-
-            </plugin>                        </goals>
-
-        </plugins>                    </execution>
-
-    </build>                    <execution>
-
-</project>                        <id>report</id>
+            <version>3.1.0</version>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.3.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>3.1.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Maven Compiler Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+            
+            <!-- Maven Surefire Plugin for Unit Tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                    </includes>
+                    <systemPropertyVariables>
+                        <logback.configurationFile>${project.basedir}/src/test/resources/logback-test.xml</logback.configurationFile>
+                        <slf4j.provider>ch.qos.logback.classic.spi.LogbackServiceProvider</slf4j.provider>
+                    </systemPropertyVariables>
+                    <argLine>
+                        -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
+                        -Dlogback.configurationFile=src/test/resources/logback-test.xml
+                        @{argLine}
+                    </argLine>
+                </configuration>
+            </plugin>
+            
+            <!-- Maven Failsafe Plugin for Integration Tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <includes>
+                        <include>**/*IT.java</include>
+                        <include>**/*IntegrationTest.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+            
+            <!-- JaCoCo Plugin for Code Coverage -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.10</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
                         <phase>test</phase>
                         <goals>
                             <goal>report</goal>
