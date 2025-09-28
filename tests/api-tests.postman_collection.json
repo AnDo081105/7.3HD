@@ -1,0 +1,108 @@
+{
+  "info": {
+    "name": "Jenkins Pipeline Demo API Tests",
+    "description": "API tests for the Jenkins Pipeline Demo application",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has correct structure', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('status', 'UP');",
+              "    pm.expect(jsonData).to.have.property('service', 'Jenkins Pipeline Demo');",
+              "    pm.expect(jsonData).to.have.property('version', '1.0.0');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/health",
+          "host": ["{{base_url}}"],
+          "path": ["api", "health"]
+        }
+      }
+    },
+    {
+      "name": "Calculator - Add",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Addition calculation is correct', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.operation).to.eql('addition');",
+              "    pm.expect(jsonData.result).to.eql(8);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/add?a=5&b=3",
+          "host": ["{{base_url}}"],
+          "path": ["api", "add"],
+          "query": [
+            {"key": "a", "value": "5"},
+            {"key": "b", "value": "3"}
+          ]
+        }
+      }
+    },
+    {
+      "name": "Calculator - Divide by Zero",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test('Error message is correct', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.eql('Division by zero is not allowed');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/divide?a=10&b=0",
+          "host": ["{{base_url}}"],
+          "path": ["api", "divide"],
+          "query": [
+            {"key": "a", "value": "10"},
+            {"key": "b", "value": "0"}
+          ]
+        }
+      }
+    }
+  ]
+}
