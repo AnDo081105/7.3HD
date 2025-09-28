@@ -251,15 +251,15 @@ pipeline {
                     }
                     post {
                         always {
-                            // Publish dependency check results
-                            publishHTML([
-                                allowMissing: false,
-                                alwaysLinkToLastBuild: true,
-                                keepAll: true,
-                                reportDir: 'target/dependency-check',
-                                reportFiles: 'dependency-check-report.html',
-                                reportName: 'OWASP Dependency Check Report'
-                            ])
+                            // Archive dependency check results
+                            script {
+                                if (fileExists('target/dependency-check/dependency-check-report.html')) {
+                                    archiveArtifacts artifacts: 'target/dependency-check/**', allowEmptyArchive: true
+                                    echo "OWASP Dependency Check report generated and archived"
+                                } else {
+                                    echo "OWASP Dependency Check report not found"
+                                }
+                            }
                         }
                     }
                 }
@@ -293,11 +293,9 @@ pipeline {
             }
             post {
                 success {
-                    slackSend(
-                        channel: SLACK_CHANNEL,
-                        color: 'good',
-                        message: "🔒 Security scans COMPLETED for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}"
-                    )
+                    echo "🔒 Security scans COMPLETED for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME}"
+                    // Uncomment when Slack is configured:
+                    // slackSend(channel: SLACK_CHANNEL, color: 'good', message: "🔒 Security scans COMPLETED for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}")
                 }
             }
         }
@@ -326,11 +324,9 @@ pipeline {
                                 set DOCKER_TAG=${DOCKER_TAG}
                                 docker-compose -f docker-compose.staging.yml up -d
                             """
-                            slackSend(
-                                channel: SLACK_CHANNEL,
-                                color: 'good',
-                                message: "🚀 Application DEPLOYED to STAGING for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}\nTag: ${DOCKER_TAG}"
-                            )
+                            echo "🚀 Application DEPLOYED to STAGING for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME} - Tag: ${DOCKER_TAG}"
+                            // Uncomment when Slack is configured:
+                            // slackSend(channel: SLACK_CHANNEL, color: 'good', message: "🚀 Application DEPLOYED to STAGING for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}\nTag: ${DOCKER_TAG}")
                         }
                         
                         // Deploy to production (main branch)
@@ -343,19 +339,15 @@ pipeline {
                                 set DOCKER_TAG=${DOCKER_TAG}
                                 docker-compose -f docker-compose.prod.yml up -d
                             """
-                            slackSend(
-                                channel: SLACK_CHANNEL,
-                                color: 'good',
-                                message: "🎉 Application DEPLOYED to PRODUCTION for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nApproved by: ${APPROVER}\nTag: ${DOCKER_TAG}"
-                            )
+                            echo "🎉 Application DEPLOYED to PRODUCTION for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Approved by: ${APPROVER} - Tag: ${DOCKER_TAG}"
+                            // Uncomment when Slack is configured:
+                            // slackSend(channel: SLACK_CHANNEL, color: 'good', message: "🎉 Application DEPLOYED to PRODUCTION for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nApproved by: ${APPROVER}\nTag: ${DOCKER_TAG}")
                         }
                     } catch (Exception e) {
                         currentBuild.result = 'FAILURE'
-                        slackSend(
-                            channel: SLACK_CHANNEL,
-                            color: 'danger',
-                            message: "❌ Deployment FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}\nError: ${e.getMessage()}"
-                        )
+                        echo "❌ Deployment FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME} - Error: ${e.getMessage()}"
+                        // Uncomment when Slack is configured:
+                        // slackSend(channel: SLACK_CHANNEL, color: 'danger', message: "❌ Deployment FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}\nError: ${e.getMessage()}")
                         throw e
                     }
                 }
@@ -389,11 +381,9 @@ pipeline {
                             )
                         '''
                     } catch (Exception e) {
-                        slackSend(
-                            channel: SLACK_CHANNEL,
-                            color: 'danger',
-                            message: "❌ Acceptance Tests FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}"
-                        )
+                        echo "❌ Acceptance Tests FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME}"
+                        // Uncomment when Slack is configured:
+                        // slackSend(channel: SLACK_CHANNEL, color: 'danger', message: "❌ Acceptance Tests FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}")
                         throw e
                     }
                 }
@@ -404,11 +394,9 @@ pipeline {
                     junit 'target/failsafe-reports/*.xml'
                 }
                 success {
-                    slackSend(
-                        channel: SLACK_CHANNEL,
-                        color: 'good',
-                        message: "✅ Acceptance Tests PASSED for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}"
-                    )
+                    echo "✅ Acceptance Tests PASSED for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME}"
+                    // Uncomment when Slack is configured:
+                    // slackSend(channel: SLACK_CHANNEL, color: 'good', message: "✅ Acceptance Tests PASSED for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}")
                 }
             }
         }
@@ -438,17 +426,13 @@ pipeline {
                             '''
                         }
                         
-                        slackSend(
-                            channel: SLACK_CHANNEL,
-                            color: 'good',
-                            message: "🏷️ Release v${BUILD_NUMBER} CREATED for ${env.JOB_NAME}\nBranch: ${env.BRANCH_NAME}\nDocker Image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                        )
+                        echo "🏷️ Release v${BUILD_NUMBER} CREATED for ${env.JOB_NAME} - Branch: ${env.BRANCH_NAME} - Docker Image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                        // Uncomment when Slack is configured:
+                        // slackSend(channel: SLACK_CHANNEL, color: 'good', message: "🏷️ Release v${BUILD_NUMBER} CREATED for ${env.JOB_NAME}\nBranch: ${env.BRANCH_NAME}\nDocker Image: ${DOCKER_IMAGE}:${DOCKER_TAG}")
                     } catch (Exception e) {
-                        slackSend(
-                            channel: SLACK_CHANNEL,
-                            color: 'danger',
-                            message: "❌ Release FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}"
-                        )
+                        echo "❌ Release FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME}"
+                        // Uncomment when Slack is configured:
+                        // slackSend(channel: SLACK_CHANNEL, color: 'danger', message: "❌ Release FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}")
                         throw e
                     }
                 }
@@ -467,27 +451,21 @@ pipeline {
         }
         
         success {
-            slackSend(
-                channel: SLACK_CHANNEL,
-                color: 'good',
-                message: "🎉 Pipeline COMPLETED SUCCESSFULLY for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}\nDuration: ${currentBuild.durationString}"
-            )
+            echo "🎉 Pipeline COMPLETED SUCCESSFULLY for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME} - Duration: ${currentBuild.durationString}"
+            // Uncomment when Slack is configured:
+            // slackSend(channel: SLACK_CHANNEL, color: 'good', message: "🎉 Pipeline COMPLETED SUCCESSFULLY for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}\nDuration: ${currentBuild.durationString}")
         }
         
         failure {
-            slackSend(
-                channel: SLACK_CHANNEL,
-                color: 'danger',
-                message: "💥 Pipeline FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}\nDuration: ${currentBuild.durationString}\nCheck: ${env.BUILD_URL}"
-            )
+            echo "💥 Pipeline FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME} - Duration: ${currentBuild.durationString} - Check: ${env.BUILD_URL}"
+            // Uncomment when Slack is configured:
+            // slackSend(channel: SLACK_CHANNEL, color: 'danger', message: "💥 Pipeline FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}\nDuration: ${currentBuild.durationString}\nCheck: ${env.BUILD_URL}")
         }
         
         unstable {
-            slackSend(
-                channel: SLACK_CHANNEL,
-                color: 'warning',
-                message: "⚠️ Pipeline UNSTABLE for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}\nDuration: ${currentBuild.durationString}"
-            )
+            echo "⚠️ Pipeline UNSTABLE for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME} - Duration: ${currentBuild.durationString}"
+            // Uncomment when Slack is configured:
+            // slackSend(channel: SLACK_CHANNEL, color: 'warning', message: "⚠️ Pipeline UNSTABLE for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}\nDuration: ${currentBuild.durationString}")
         }
     }
 }
