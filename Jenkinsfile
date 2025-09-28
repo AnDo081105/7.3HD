@@ -28,6 +28,18 @@ pipeline {
     }
     
     stages {
+        stage('Debug Environment') {
+            steps {
+                echo 'Checking environment variables...'
+                bat '''
+                    echo "JAVA_HOME: %JAVA_HOME%"
+                    echo "MAVEN_HOME: %MAVEN_HOME%"
+                    echo "PATH: %PATH%"
+                    java -version
+                    mvn -version
+                '''
+            }
+        }
         stage('Checkout') {
             steps {
                 echo 'Checking out source code...'
@@ -40,12 +52,25 @@ pipeline {
                 echo 'Building the application...'
                 script {
                     try {
+                        // Double-check Java setup before building
+                        echo 'Verifying Java and Maven setup...'
+                        bat '''
+                            echo "Current JAVA_HOME: %JAVA_HOME%"
+                            echo "Current MAVEN_HOME: %MAVEN_HOME%"
+                            where java
+                            where mvn
+                            java -version
+                            mvn -version
+                        '''
+                        
+                        echo 'Starting Maven build...'
                         bat 'mvn clean compile -DskipTests=true'
                         echo 'Build completed successfully'
                     } catch (Exception e) {
                         currentBuild.result = 'FAILURE'
                         echo "❌ Build FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME}"
                         echo "Error: ${e.getMessage()}"
+                        echo "This is likely a JAVA_HOME or Maven configuration issue in Jenkins"
                         // Uncomment when Slack is configured:
                         // slackSend(channel: SLACK_CHANNEL, color: 'danger', message: "❌ Build FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}\nError: ${e.getMessage()}")
                         throw e

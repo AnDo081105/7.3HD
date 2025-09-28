@@ -1,0 +1,166 @@
+pipeline {
+    agent any
+    
+    // Simplified options without tool dependencies
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timeout(time: 1, unit: 'HOURS')
+        skipStagesAfterUnstable()
+    }
+    
+    environment {
+        // Use system defaults instead of configured tools
+        SONAR_HOST_URL = 'http://localhost:9000'
+        DOCKER_IMAGE = 'jenkins-pipeline-demo'
+        DOCKER_TAG = "${BUILD_NUMBER}"
+        SLACK_CHANNEL = '#devops-alerts'
+        SLACK_TEAM_DOMAIN = 'your-team'
+    }
+    
+    // Comment out tools section to avoid tool configuration issues
+    /*
+    tools {
+        maven 'Maven 3.8.6'
+        jdk 'jdk11'
+    }
+    */
+    
+    stages {
+        stage('Environment Check') {
+            steps {
+                echo 'Checking system environment...'
+                bat '''
+                    echo "=== System Environment Check ==="
+                    echo "JAVA_HOME: %JAVA_HOME%"
+                    echo "MAVEN_HOME: %MAVEN_HOME%"
+                    echo "PATH: %PATH%"
+                    echo.
+                    echo "=== Java Check ==="
+                    where java
+                    java -version
+                    echo.
+                    echo "=== Maven Check ==="
+                    where mvn
+                    mvn -version
+                    echo.
+                    echo "=== End Environment Check ==="
+                '''
+            }
+        }
+        
+        stage('Checkout') {
+            steps {
+                echo 'Checking out source code...'
+                checkout scm
+            }
+        }
+        
+        stage('Build') {
+            steps {
+                echo 'Building the application...'
+                script {
+                    try {
+                        echo 'Running Maven clean compile...'
+                        bat 'mvn clean compile -DskipTests=true'
+                        echo 'Build completed successfully'
+                    } catch (Exception e) {
+                        currentBuild.result = 'FAILURE'
+                        echo "❌ Build FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME}"
+                        echo "Error: ${e.getMessage()}"
+                        echo ""
+                        echo "TROUBLESHOOTING TIPS:"
+                        echo "1. Check if Java JDK is installed on Jenkins agent"
+                        echo "2. Check if Maven is installed on Jenkins agent"  
+                        echo "3. Verify JAVA_HOME points to JDK (not JRE)"
+                        echo "4. Check Jenkins Global Tool Configuration"
+                        throw e
+                    }
+                }
+            }
+            post {
+                success {
+                    echo "✅ Build SUCCESS for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME}"
+                }
+            }
+        }
+        
+        stage('Unit Tests') {
+            steps {
+                echo 'Running unit tests...'
+                script {
+                    try {
+                        bat 'mvn test'
+                        echo 'Unit tests completed'
+                    } catch (Exception e) {
+                        currentBuild.result = 'FAILURE'
+                        echo "❌ Unit Tests FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME}"
+                        throw e
+                    }
+                }
+            }
+            post {
+                always {
+                    // Try to publish test results if they exist
+                    script {
+                        try {
+                            publishTestResults testResultsPattern: 'target/surefire-reports/*.xml'
+                            echo "Published test results"
+                        } catch (Exception e) {
+                            echo "Could not publish test results: ${e.getMessage()}"
+                        }
+                    }
+                }
+                success {
+                    echo "✅ Unit Tests PASSED for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME}"
+                }
+            }
+        }
+        
+        stage('Package') {
+            steps {
+                echo 'Packaging application...'
+                script {
+                    try {
+                        bat 'mvn package -DskipTests'
+                        echo 'Packaging completed successfully'
+                    } catch (Exception e) {
+                        echo "❌ Packaging FAILED: ${e.getMessage()}"
+                        throw e
+                    }
+                }
+            }
+            post {
+                success {
+                    echo "✅ Package SUCCESS - JAR created in target/ directory"
+                    // Archive the JAR file
+                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo 'Pipeline execution completed'
+            echo "Build result: ${currentBuild.result ?: 'SUCCESS'}"
+        }
+        success {
+            echo "🎉 Pipeline COMPLETED SUCCESSFULLY"
+            echo "Artifacts created:"
+            echo "- JAR file: target/*.jar"
+            echo "- Test reports: target/surefire-reports/"
+        }
+        failure {
+            echo "💥 Pipeline FAILED"
+            echo "Check the logs above for error details"
+            echo "Common issues:"
+            echo "1. JAVA_HOME not set correctly"
+            echo "2. Maven not found in PATH"
+            echo "3. Tool configuration mismatch in Jenkins"
+        }
+        unstable {
+            echo "⚠️ Pipeline UNSTABLE"
+            echo "Build completed but with issues"
+        }
+    }
+}

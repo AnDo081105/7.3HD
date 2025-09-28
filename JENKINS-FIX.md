@@ -9,7 +9,26 @@ The error indicated that the tool names in the Jenkinsfile don't match the confi
 - Changed `'Maven-3.9.11'` → `'Maven 3.8.6'`
 - Changed `'JDK-11'` → `'jdk11'`
 
-### 2. Windows Shell Commands
+### 2. JAVA_HOME Environment Variable Issue
+**Error:** `The JAVA_HOME environment variable is not defined correctly`
+
+**Root Cause:** Jenkins tool configuration for JDK is incorrect or JDK tool name doesn't match.
+
+**Solutions:**
+1. **Check Jenkins Tool Configuration:**
+   - Go to Jenkins → Manage Jenkins → Global Tool Configuration
+   - Under "JDK installations", verify the exact name matches `jdk11`
+   - Make sure the JDK path points to a JDK (not JRE)
+
+2. **Alternative: Use System Java:**
+   - Use `Jenkinsfile.simple` (created) which doesn't depend on tool configuration
+   - Requires Java and Maven to be in system PATH
+
+3. **Fix Tool Names:**
+   - In Jenkins Global Tool Configuration, check the exact JDK installation name
+   - Update Jenkinsfile tools section to match exactly
+
+### 3. Windows Shell Commands
 **Error:** `Cannot run program "sh"... CreateProcess error=2, The system cannot find the file specified`
 
 **Root Cause:** Jenkins was trying to run Unix shell (`sh`) commands on Windows system.
@@ -20,13 +39,13 @@ The error indicated that the tool names in the Jenkinsfile don't match the confi
 - `sh 'mvn package'` → `bat 'mvn package'`
 - Unix-style multi-line commands converted to Windows batch syntax
 
-### 3. Environment Variables
+### 4. Environment Variables
 **Fixed Unix environment variable syntax for Windows:**
 - `export DOCKER_TAG=${DOCKER_TAG}` → `set DOCKER_TAG=${DOCKER_TAG}`
 - `echo $DOCKER_PASS` → `echo %DOCKER_PASS%`
 - `$VARIABLE` → `%VARIABLE%` in batch commands
 
-### 4. Conditional Commands
+### 5. Conditional Commands
 **Fixed Unix conditionals for Windows:**
 - `command -v newman &> /dev/null` → `where newman >nul 2>nul`
 - `|| true` → `|| exit /b 0`
@@ -87,3 +106,31 @@ withSonarQubeEnv('SonarQube') {
 - Error handling adapted for Windows batch commands
 
 The pipeline should now execute successfully on your Windows Jenkins environment!
+
+## 🚨 Quick Fix for JAVA_HOME Issue:
+
+If you're still getting the JAVA_HOME error, try this immediate solution:
+
+### Option 1: Use Simple Pipeline (Recommended)
+1. Rename current `Jenkinsfile` to `Jenkinsfile.backup`
+2. Rename `Jenkinsfile.simple` to `Jenkinsfile`  
+3. This version uses system Java/Maven without tool configuration
+
+### Option 2: Fix Tool Configuration
+1. Go to Jenkins → Manage Jenkins → Global Tool Configuration
+2. Under JDK installations, check the exact name
+3. Common JDK names in Jenkins:
+   - `jdk8`
+   - `jdk11`
+   - `Java 11`
+   - `Default`
+4. Update the Jenkinsfile tools section with the exact name
+
+### Option 3: Manual Environment Variables
+Add this to your Jenkins job configuration → Build Environment:
+```
+JAVA_HOME=C:\Program Files\Java\jdk-11.0.x
+MAVEN_HOME=C:\Program Files\Apache\maven
+```
+
+The `Jenkinsfile.simple` should work immediately if Java and Maven are installed on your system!
