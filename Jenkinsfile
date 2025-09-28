@@ -9,10 +9,11 @@ pipeline {
     }
     
     environment {
-        // Try to use available tools, fallback to system defaults if not found
+        // Maven tool is working, but JDK tool is not found
         MAVEN_HOME = tool 'Maven 3.8.6'
-        JAVA_HOME = tool 'jdk11'
-        PATH = "${MAVEN_HOME}/bin:${JAVA_HOME}/bin:${PATH}"
+        // Use system Java from PATH instead of tool configuration
+        JAVA_HOME = 'C:\\Program Files\\Common Files\\Oracle\\Java\\javapath'
+        PATH = "${MAVEN_HOME}/bin;${JAVA_HOME};C:\\Program Files\\Common Files\\Oracle\\Java\\javapath;${PATH}"
         SONAR_HOST_URL = 'http://localhost:9000'
         DOCKER_IMAGE = 'jenkins-pipeline-demo'
         DOCKER_TAG = "${BUILD_NUMBER}"
@@ -24,7 +25,8 @@ pipeline {
     
     tools {
         maven 'Maven 3.8.6'
-        jdk 'jdk11'
+        // Comment out JDK tool since it's not working
+        // jdk 'jdk11'
     }
     
     stages {
@@ -34,8 +36,10 @@ pipeline {
                 bat '''
                     echo "JAVA_HOME: %JAVA_HOME%"
                     echo "MAVEN_HOME: %MAVEN_HOME%"
-                    echo "PATH: %PATH%"
+                    echo "Checking Java..."
+                    where java
                     java -version
+                    echo "Checking Maven..."
                     mvn -version
                 '''
             }
@@ -52,17 +56,6 @@ pipeline {
                 echo 'Building the application...'
                 script {
                     try {
-                        // Double-check Java setup before building
-                        echo 'Verifying Java and Maven setup...'
-                        bat '''
-                            echo "Current JAVA_HOME: %JAVA_HOME%"
-                            echo "Current MAVEN_HOME: %MAVEN_HOME%"
-                            where java
-                            where mvn
-                            java -version
-                            mvn -version
-                        '''
-                        
                         echo 'Starting Maven build...'
                         bat 'mvn clean compile -DskipTests=true'
                         echo 'Build completed successfully'
@@ -70,7 +63,6 @@ pipeline {
                         currentBuild.result = 'FAILURE'
                         echo "❌ Build FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME}"
                         echo "Error: ${e.getMessage()}"
-                        echo "This is likely a JAVA_HOME or Maven configuration issue in Jenkins"
                         // Uncomment when Slack is configured:
                         // slackSend(channel: SLACK_CHANNEL, color: 'danger', message: "❌ Build FAILED for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}\nError: ${e.getMessage()}")
                         throw e

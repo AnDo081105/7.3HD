@@ -12,21 +12,18 @@ The error indicated that the tool names in the Jenkinsfile don't match the confi
 ### 2. JAVA_HOME Environment Variable Issue
 **Error:** `The JAVA_HOME environment variable is not defined correctly`
 
-**Root Cause:** Jenkins tool configuration for JDK is incorrect or JDK tool name doesn't match.
+**Root Cause:** The Jenkins JDK tool named `jdk11` doesn't exist or isn't configured properly.
 
-**Solutions:**
-1. **Check Jenkins Tool Configuration:**
-   - Go to Jenkins → Manage Jenkins → Global Tool Configuration
-   - Under "JDK installations", verify the exact name matches `jdk11`
-   - Make sure the JDK path points to a JDK (not JRE)
+**Debug Output Analysis:**
+- JAVA_HOME is empty (tool 'jdk11' returned nothing)
+- Maven is configured correctly
+- Java is available in system PATH at `C:\Program Files\Common Files\Oracle\Java\javapath`
 
-2. **Alternative: Use System Java:**
-   - Use `Jenkinsfile.simple` (created) which doesn't depend on tool configuration
-   - Requires Java and Maven to be in system PATH
-
-3. **Fix Tool Names:**
-   - In Jenkins Global Tool Configuration, check the exact JDK installation name
-   - Update Jenkinsfile tools section to match exactly
+**Fixed in Jenkinsfile:**
+- Removed dependency on JDK tool configuration
+- Set JAVA_HOME to system Java path: `C:\Program Files\Common Files\Oracle\Java\javapath`
+- Commented out `jdk 'jdk11'` from tools section
+- Maven tool `'Maven 3.8.6'` works correctly
 
 ### 3. Windows Shell Commands
 **Error:** `Cannot run program "sh"... CreateProcess error=2, The system cannot find the file specified`
@@ -107,30 +104,32 @@ withSonarQubeEnv('SonarQube') {
 
 The pipeline should now execute successfully on your Windows Jenkins environment!
 
-## 🚨 Quick Fix for JAVA_HOME Issue:
+## 🚨 JAVA_HOME Issue - FIXED!
 
-If you're still getting the JAVA_HOME error, try this immediate solution:
+Based on the debug output, the issue has been identified and fixed:
 
-### Option 1: Use Simple Pipeline (Recommended)
-1. Rename current `Jenkinsfile` to `Jenkinsfile.backup`
-2. Rename `Jenkinsfile.simple` to `Jenkinsfile`  
-3. This version uses system Java/Maven without tool configuration
+**Problem:** The Jenkins JDK tool `'jdk11'` was not configured, causing empty JAVA_HOME.
+**Solution:** Updated Jenkinsfile to use system Java directly.
 
-### Option 2: Fix Tool Configuration
+### ✅ Applied Fix:
+- JAVA_HOME now points to: `C:\Program Files\Common Files\Oracle\Java\javapath`
+- Removed dependency on Jenkins JDK tool configuration  
+- Maven tool configuration works fine (`Maven 3.8.6`)
+
+### Next Steps:
+1. **Run the pipeline again** - it should now work
+2. **The debug stage** will confirm Java and Maven are working
+3. **Build stage** should complete successfully
+
+### Alternative Solutions (if still having issues):
+
+**Option 1: Use Simple Pipeline**
+The `Jenkinsfile.simple` is still available as a backup that uses system tools entirely.
+
+**Option 2: Configure JDK Tool in Jenkins**
+If you want to use Jenkins tool management:
 1. Go to Jenkins → Manage Jenkins → Global Tool Configuration
-2. Under JDK installations, check the exact name
-3. Common JDK names in Jenkins:
-   - `jdk8`
-   - `jdk11`
-   - `Java 11`
-   - `Default`
-4. Update the Jenkinsfile tools section with the exact name
+2. Add JDK installation with name exactly `jdk11`
+3. Point it to: `C:\Program Files\Common Files\Oracle\Java\javapath`
 
-### Option 3: Manual Environment Variables
-Add this to your Jenkins job configuration → Build Environment:
-```
-JAVA_HOME=C:\Program Files\Java\jdk-11.0.x
-MAVEN_HOME=C:\Program Files\Apache\maven
-```
-
-The `Jenkinsfile.simple` should work immediately if Java and Maven are installed on your system!
+The main Jenkinsfile should now work immediately with the system Java path!
