@@ -145,17 +145,13 @@ pipeline {
                     // Publish test results
                     junit 'target/surefire-reports/*.xml'
                     
-                    // Publish JaCoCo coverage report
+                    // Archive JaCoCo coverage report files
                     script {
                         if (fileExists('target/site/jacoco/jacoco.xml')) {
-                            publishHTML([
-                                allowMissing: false,
-                                alwaysLinkToLastBuild: true,
-                                keepAll: true,
-                                reportDir: 'target/site/jacoco',
-                                reportFiles: 'index.html',
-                                reportName: 'JaCoCo Coverage Report'
-                            ])
+                            archiveArtifacts artifacts: 'target/site/jacoco/**', allowEmptyArchive: true
+                            echo "JaCoCo coverage report generated and archived"
+                        } else {
+                            echo "JaCoCo coverage report not found"
                         }
                     }
                 }
