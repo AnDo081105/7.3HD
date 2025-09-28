@@ -40,7 +40,8 @@ class ApplicationIntegrationTest {
     void testHealthEndpoint() {
         String url = BASE_URL_TEMPLATE + port + "/api/health";
         
-        ResponseEntity<Map<String, Object>> response = restTemplate.getForEntity(url, Map.class);
+        @SuppressWarnings("unchecked")
+        ResponseEntity<Map<String, Object>> response = (ResponseEntity<Map<String, Object>>) restTemplate.getForEntity(url, Map.class);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -55,25 +56,29 @@ class ApplicationIntegrationTest {
         String baseUrl = BASE_URL_TEMPLATE + port + "/api";
         
         // Test addition
-        ResponseEntity<Map<String, Object>> addResponse = restTemplate.getForEntity(
+        @SuppressWarnings("unchecked")
+        ResponseEntity<Map<String, Object>> addResponse = (ResponseEntity<Map<String, Object>>) restTemplate.getForEntity(
             baseUrl + "/add?a=5&b=3", Map.class);
         assertEquals(HttpStatus.OK, addResponse.getStatusCode());
         assertEquals(8.0, addResponse.getBody().get(RESULT_KEY));
         
         // Test subtraction
-        ResponseEntity<Map<String, Object>> subtractResponse = restTemplate.getForEntity(
+        @SuppressWarnings("unchecked")
+        ResponseEntity<Map<String, Object>> subtractResponse = (ResponseEntity<Map<String, Object>>) restTemplate.getForEntity(
             baseUrl + "/subtract?a=10&b=3", Map.class);
         assertEquals(HttpStatus.OK, subtractResponse.getStatusCode());
         assertEquals(7.0, subtractResponse.getBody().get(RESULT_KEY));
         
         // Test multiplication
-        ResponseEntity<Map<String, Object>> multiplyResponse = restTemplate.getForEntity(
+        @SuppressWarnings("unchecked")
+        ResponseEntity<Map<String, Object>> multiplyResponse = (ResponseEntity<Map<String, Object>>) restTemplate.getForEntity(
             baseUrl + "/multiply?a=4&b=3", Map.class);
         assertEquals(HttpStatus.OK, multiplyResponse.getStatusCode());
         assertEquals(12.0, multiplyResponse.getBody().get(RESULT_KEY));
         
         // Test division
-        ResponseEntity<Map<String, Object>> divideResponse = restTemplate.getForEntity(
+        @SuppressWarnings("unchecked")
+        ResponseEntity<Map<String, Object>> divideResponse = (ResponseEntity<Map<String, Object>>) restTemplate.getForEntity(
             baseUrl + "/divide?a=15&b=3", Map.class);
         assertEquals(HttpStatus.OK, divideResponse.getStatusCode());
         assertEquals(5.0, divideResponse.getBody().get(RESULT_KEY));
@@ -84,7 +89,8 @@ class ApplicationIntegrationTest {
     void testDivisionByZeroError() {
         String url = BASE_URL_TEMPLATE + port + "/api/divide?a=10&b=0";
         
-        ResponseEntity<Map<String, Object>> response = restTemplate.getForEntity(url, Map.class);
+        @SuppressWarnings("unchecked")
+        ResponseEntity<Map<String, Object>> response = (ResponseEntity<Map<String, Object>>) restTemplate.getForEntity(url, Map.class);
         
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
