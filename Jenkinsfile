@@ -40,7 +40,7 @@ pipeline {
                 echo 'Building the application...'
                 script {
                     try {
-                        sh 'mvn clean compile -DskipTests=true'
+                        bat 'mvn clean compile -DskipTests=true'
                         echo 'Build completed successfully'
                     } catch (Exception e) {
                         currentBuild.result = 'FAILURE'
@@ -66,7 +66,7 @@ pipeline {
                 echo 'Running unit tests...'
                 script {
                     try {
-                        sh 'mvn test'
+                        bat 'mvn test'
                         echo 'Unit tests completed'
                     } catch (Exception e) {
                         currentBuild.result = 'FAILURE'
@@ -170,13 +170,11 @@ pipeline {
                         echo 'Running OWASP Dependency Check...'
                         script {
                             try {
-                                sh 'mvn org.owasp:dependency-check-maven:check'
+                                bat 'mvn org.owasp:dependency-check-maven:check'
                             } catch (Exception e) {
-                                slackSend(
-                                    channel: SLACK_CHANNEL,
-                                    color: 'warning',
-                                    message: "⚠️ Security vulnerabilities found in dependencies for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}"
-                                )
+                                echo "⚠️ Security vulnerabilities found in dependencies for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME}"
+                                // Uncomment when Slack is configured:
+                                // slackSend(channel: SLACK_CHANNEL, color: 'warning', message: "⚠️ Security vulnerabilities found in dependencies for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}")
                                 // Continue pipeline even if vulnerabilities are found
                                 currentBuild.result = 'UNSTABLE'
                             }
@@ -203,22 +201,20 @@ pipeline {
                         script {
                             try {
                                 // Build temporary image for scanning
-                                sh "docker build -t ${DOCKER_IMAGE}:temp ."
+                                bat "docker build -t ${DOCKER_IMAGE}:temp ."
                                 
                                 // Run Trivy scan
-                                sh """
-                                    trivy image --format json --output trivy-report.json ${DOCKER_IMAGE}:temp || true
+                                bat """
+                                    trivy image --format json --output trivy-report.json ${DOCKER_IMAGE}:temp || exit /b 0
                                     trivy image --format table ${DOCKER_IMAGE}:temp
                                 """
                                 
                                 // Clean up temp image
-                                sh "docker rmi ${DOCKER_IMAGE}:temp || true"
+                                bat "docker rmi ${DOCKER_IMAGE}:temp || exit /b 0"
                             } catch (Exception e) {
-                                slackSend(
-                                    channel: SLACK_CHANNEL,
-                                    color: 'warning',
-                                    message: "⚠️ Trivy Security Scan encountered issues for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}"
-                                )
+                                echo "⚠️ Trivy Security Scan encountered issues for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME}"
+                                // Uncomment when Slack is configured:
+                                // slackSend(channel: SLACK_CHANNEL, color: 'warning', message: "⚠️ Trivy Security Scan encountered issues for ${env.JOB_NAME} - ${env.BUILD_NUMBER}\nBranch: ${env.BRANCH_NAME}")
                                 // Continue pipeline
                                 currentBuild.result = 'UNSTABLE'
                             }
@@ -249,18 +245,18 @@ pipeline {
                 script {
                     try {
                         // Package the application
-                        sh 'mvn package -DskipTests'
+                        bat 'mvn package -DskipTests'
                         
                         // Build Docker image
-                        sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
-                        sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
+                        bat "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                        bat "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
                         
                         // Deploy using Docker Compose (staging)
                         if (env.BRANCH_NAME == 'develop') {
-                            sh '''
-                                export DOCKER_TAG=${DOCKER_TAG}
+                            bat """
+                                set DOCKER_TAG=${DOCKER_TAG}
                                 docker-compose -f docker-compose.staging.yml up -d
-                            '''
+                            """
                             slackSend(
                                 channel: SLACK_CHANNEL,
                                 color: 'good',
@@ -274,10 +270,10 @@ pipeline {
                             input message: 'Deploy to Production?', ok: 'Deploy',
                                   submitterParameter: 'APPROVER'
                             
-                            sh '''
-                                export DOCKER_TAG=${DOCKER_TAG}
+                            bat """
+                                set DOCKER_TAG=${DOCKER_TAG}
                                 docker-compose -f docker-compose.prod.yml up -d
-                            '''
+                            """
                             slackSend(
                                 channel: SLACK_CHANNEL,
                                 color: 'good',
@@ -312,15 +308,16 @@ pipeline {
                         sleep(time: 30, unit: 'SECONDS')
                         
                         // Run integration tests against deployed application
-                        sh 'mvn verify -Dtest.environment=staging'
+                        bat 'mvn verify -Dtest.environment=staging'
                         
-                        // Run API tests using Newman (Postman CLI)
-                        sh '''
-                            if command -v newman &> /dev/null; then
+                        // Run API tests using Newman (Postman CLI) - Windows version
+                        bat '''
+                            where newman >nul 2>nul
+                            if %ERRORLEVEL% EQU 0 (
                                 newman run tests/api-tests.postman_collection.json -e tests/staging.postman_environment.json
-                            else
+                            ) else (
                                 echo "Newman not installed, skipping API tests"
-                            fi
+                            )
                         '''
                     } catch (Exception e) {
                         slackSend(
@@ -356,19 +353,19 @@ pipeline {
                 script {
                     try {
                         // Create Git tag
-                        sh """
-                            git config user.name 'Jenkins'
-                            git config user.email 'jenkins@example.com'
-                            git tag -a v${BUILD_NUMBER} -m 'Release version ${BUILD_NUMBER}'
+                        bat """
+                            git config user.name "Jenkins"
+                            git config user.email "jenkins@example.com"
+                            git tag -a v${BUILD_NUMBER} -m "Release version ${BUILD_NUMBER}"
                             git push origin v${BUILD_NUMBER}
                         """
                         
                         // Push Docker image to registry
                         withCredentials([usernamePassword(credentialsId: 'docker-registry', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                            sh '''
-                                echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                                docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                                docker push ${DOCKER_IMAGE}:latest
+                            bat '''
+                                echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                                docker push %DOCKER_IMAGE%:%DOCKER_TAG%
+                                docker push %DOCKER_IMAGE%:latest
                             '''
                         }
                         
