@@ -126,7 +126,9 @@ pipeline {
                                 set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17"
                             )
                             echo "Using JAVA_HOME: !JAVA_HOME!"
-                            mvn test
+                            rem Set system properties to fix logging issues
+                            set MAVEN_OPTS=-Dlogback.configurationFile=src/test/resources/logback-test.xml -Dlogging.level.root=WARN
+                            mvn test -Dlogback.configurationFile=src/test/resources/logback-test.xml
                         '''
                         echo 'Unit tests completed'
                     } catch (Exception e) {
@@ -141,7 +143,7 @@ pipeline {
             post {
                 always {
                     // Publish test results
-                    publishTestResults testResultsPattern: 'target/surefire-reports/*.xml'
+                    junit 'target/surefire-reports/*.xml'
                     
                     // Publish JaCoCo coverage report
                     publishCoverage adapters: [jacocoAdapter('target/site/jacoco/jacoco.xml')], 
@@ -393,7 +395,7 @@ pipeline {
             post {
                 always {
                     // Publish integration test results
-                    publishTestResults testResultsPattern: 'target/failsafe-reports/*.xml'
+                    junit 'target/failsafe-reports/*.xml'
                 }
                 success {
                     slackSend(
