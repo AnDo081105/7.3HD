@@ -12,8 +12,9 @@ pipeline {
         // Maven tool is working, but JDK tool is not found
         MAVEN_HOME = tool 'Maven 3.8.6'
         // Use system Java from PATH instead of tool configuration
-        JAVA_HOME = 'C:\\Program Files\\Common Files\\Oracle\\Java\\javapath'
-        PATH = "${MAVEN_HOME}/bin;${JAVA_HOME};C:\\Program Files\\Common Files\\Oracle\\Java\\javapath;${PATH}"
+        // Try to set JAVA_HOME to actual JDK installation
+        JAVA_HOME = 'C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.12.7-hotspot'
+        PATH = "${MAVEN_HOME}/bin;${JAVA_HOME}/bin;C:\\Program Files\\Common Files\\Oracle\\Java\\javapath;${PATH}"
         SONAR_HOST_URL = 'http://localhost:9000'
         DOCKER_IMAGE = 'jenkins-pipeline-demo'
         DOCKER_TAG = "${BUILD_NUMBER}"
@@ -34,12 +35,31 @@ pipeline {
             steps {
                 echo 'Checking environment variables...'
                 bat '''
-                    echo "JAVA_HOME: %JAVA_HOME%"
+                    setlocal enabledelayedexpansion
+                    echo "Finding Java installation..."
+                    
+                    rem Try common Java installation paths
+                    if exist "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.12.7-hotspot" (
+                        set "JAVA_HOME=C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.12.7-hotspot"
+                        echo "Found JAVA_HOME: !JAVA_HOME!"
+                    ) else if exist "C:\\Program Files\\Java\\jdk-17.0.12" (
+                        set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17.0.12"
+                        echo "Found JAVA_HOME: !JAVA_HOME!"
+                    ) else if exist "C:\\Program Files\\Java\\jdk-17" (
+                        set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17"
+                        echo "Found JAVA_HOME: !JAVA_HOME!"
+                    ) else (
+                        echo "No JDK found, Maven may fail"
+                        set "JAVA_HOME=%JAVA_HOME%"
+                    )
+                    
+                    echo "JAVA_HOME: !JAVA_HOME!"
                     echo "MAVEN_HOME: %MAVEN_HOME%"
                     echo "Checking Java..."
                     where java
                     java -version
-                    echo "Checking Maven..."
+                    echo "Checking Maven with dynamic JAVA_HOME..."
+                    set "PATH=!JAVA_HOME!\\bin;%PATH%"
                     mvn -version
                 '''
             }
@@ -57,7 +77,19 @@ pipeline {
                 script {
                     try {
                         echo 'Starting Maven build...'
-                        bat 'mvn clean compile -DskipTests=true'
+                        bat '''
+                            setlocal enabledelayedexpansion
+                            rem Set JAVA_HOME for Maven
+                            if exist "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.12.7-hotspot" (
+                                set "JAVA_HOME=C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.12.7-hotspot"
+                            ) else if exist "C:\\Program Files\\Java\\jdk-17.0.12" (
+                                set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17.0.12"
+                            ) else if exist "C:\\Program Files\\Java\\jdk-17" (
+                                set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17"
+                            )
+                            echo "Using JAVA_HOME: !JAVA_HOME!"
+                            mvn clean compile -DskipTests=true
+                        '''
                         echo 'Build completed successfully'
                     } catch (Exception e) {
                         currentBuild.result = 'FAILURE'
@@ -83,7 +115,19 @@ pipeline {
                 echo 'Running unit tests...'
                 script {
                     try {
-                        bat 'mvn test'
+                        bat '''
+                            setlocal enabledelayedexpansion
+                            rem Set JAVA_HOME for Maven
+                            if exist "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.12.7-hotspot" (
+                                set "JAVA_HOME=C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.12.7-hotspot"
+                            ) else if exist "C:\\Program Files\\Java\\jdk-17.0.12" (
+                                set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17.0.12"
+                            ) else if exist "C:\\Program Files\\Java\\jdk-17" (
+                                set "JAVA_HOME=C:\\Program Files\\Java\\jdk-17"
+                            )
+                            echo "Using JAVA_HOME: !JAVA_HOME!"
+                            mvn test
+                        '''
                         echo 'Unit tests completed'
                     } catch (Exception e) {
                         currentBuild.result = 'FAILURE'
