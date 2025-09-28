@@ -146,8 +146,18 @@ pipeline {
                     junit 'target/surefire-reports/*.xml'
                     
                     // Publish JaCoCo coverage report
-                    publishCoverage adapters: [jacocoAdapter('target/site/jacoco/jacoco.xml')], 
-                                   sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
+                    script {
+                        if (fileExists('target/site/jacoco/jacoco.xml')) {
+                            publishHTML([
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: 'target/site/jacoco',
+                                reportFiles: 'index.html',
+                                reportName: 'JaCoCo Coverage Report'
+                            ])
+                        }
+                    }
                 }
                 success {
                     echo "✅ Unit Tests PASSED for ${env.JOB_NAME} - ${env.BUILD_NUMBER} - Branch: ${env.BRANCH_NAME}"
